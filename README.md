@@ -55,6 +55,47 @@ User adds agent with objective
   User monitors progress, clicks into any agent to see its live session
 ```
 
+## Getting Started
+
+### Prerequisites
+
+- Docker
+- A GitHub account
+- An Anthropic API key
+
+### Setup
+
+1. Copy the example env file and fill in your secrets:
+
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` with your values:
+
+| Variable | Description | Where to get it |
+|---|---|---|
+| `GITHUB_TOKEN` | GitHub PAT with `repo` scope | [github.com/settings/tokens](https://github.com/settings/tokens) |
+| `ANTHROPIC_API_KEY` | Anthropic API key | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+
+3. Build the agent image:
+
+```bash
+docker build -t do-my-job-agent ./agent
+```
+
+4. Run an agent:
+
+```bash
+docker run --env-file .env \
+  -e REPO_URL="https://github.com/user/repo.git" \
+  -e INSTRUCTION="Fix the bug in auth.py" \
+  -e AGENT_NAME="fix-auth-bug" \
+  do-my-job-agent
+```
+
+The agent will clone the repo from main, create a branch `agent/fix-auth-bug`, run Claude Code with the instruction, and output the resulting diff.
+
 ## Roadmap
 
 ### Step 1 — Agent Container Image
