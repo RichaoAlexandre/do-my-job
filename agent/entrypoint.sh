@@ -30,7 +30,7 @@ git checkout -b "$BRANCH_NAME"
 
 # Run Claude Code with the instruction
 echo "==> Running Claude Code with instruction..."
-claude --allowedTools "${CLAUDE_ALLOWED_TOOLS}" -p "$INSTRUCTION"
+claude --output-format stream-json --allowedTools "${CLAUDE_ALLOWED_TOOLS}" -p "$INSTRUCTION"
 
 # Output the diff
 echo "==> Generating diff..."
