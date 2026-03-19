@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-interface Agent {
-  id: string
-  name: string
-  instruction: string
-  status: string
-  createdAt: string
-}
+import { getAgents, createAgent } from '../connectors/api'
 
 export default function HomePage() {
   const [agents, setAgents] = useState<Agent[]>([])
@@ -18,23 +11,14 @@ export default function HomePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetch('/api/agents')
-      .then((r) => r.json())
-      .then(setAgents)
-      .catch(console.error)
+    getAgents().then(setAgents).catch(console.error)
   }, [])
 
   async function handleCreate() {
     if (!task.trim() || !repoUrl.trim()) return
     setSubmitting(true)
     try {
-      const res = await fetch('/api/agents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task, repoUrl }),
-      })
-      if (!res.ok) throw new Error('Failed to create agent')
-      const agent: Agent = await res.json()
+      const agent = await createAgent(task, repoUrl)
       setAgents((prev) => [...prev, agent])
       setTask('')
       setRepoUrl('')

@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { cn } from "../lib/cn";
 import AssistantMessage from "../components/AssistantMessage";
 import ThinkingMessage from "../components/ThinkingMessage";
 import ToolCallMessage from "../components/ToolCallMessage";
 import ToolResultMessage from "../components/ToolResultMessage";
 import SystemMessage from "../components/SystemMessage";
 import UserMessage from "../components/UserMessage";
-import type {
-  AgentEvent,
-  AssistantEvent,
-  UserEvent,
-  ContentBlock,
-} from "../types/anthropic";
+import {
+  type AgentEvent,
+  type AssistantEvent,
+  type UserEvent,
+  type ContentBlock,
+  BlockTypes,
+} from "../types/messages.types";
 
-interface Review {
+type Review = {
   summary: string;
   diff: string;
-}
+};
 
 function toolResultToString(
   content: string | { type: string; [key: string]: unknown }[],
@@ -29,11 +31,11 @@ function toolResultToString(
 
 function renderContentBlock(block: ContentBlock, key: string) {
   switch (block.type) {
-    case "text":
+    case BlockTypes.text:
       return <AssistantMessage key={key} text={block.text} />;
-    case "thinking":
+    case BlockTypes.thinking:
       return <ThinkingMessage key={key} text={block.thinking} />;
-    case "tool_use":
+    case BlockTypes.tool_use:
       return (
         <ToolCallMessage
           key={key}
@@ -41,7 +43,7 @@ function renderContentBlock(block: ContentBlock, key: string) {
           input={JSON.stringify(block.input, null, 2)}
         />
       );
-    case "tool_result":
+    case BlockTypes.tool_result:
       return (
         <ToolResultMessage
           key={key}
@@ -173,13 +175,14 @@ export default function AgentPage() {
             Agent {id?.slice(0, 8)}
           </h1>
           <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              status === "solving"
-                ? "bg-yellow-900 text-yellow-300"
-                : status === "finished"
-                  ? "bg-green-900 text-green-300"
-                  : "bg-red-900 text-red-300"
-            }`}
+            className={cn(
+              "text-xs px-2 py-0.5 rounded-full",
+              status === "solving" && "bg-yellow-900 text-yellow-300",
+              status === "finished" && "bg-green-900 text-green-300",
+              status !== "solving" &&
+                status !== "finished" &&
+                "bg-red-900 text-red-300",
+            )}
           >
             {status}
           </span>
