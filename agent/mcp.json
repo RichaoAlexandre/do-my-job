@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "do-my-job": {
-      "command": "node",
-      "args": ["/mcp-server.mjs"]
-    }
-  }
-}

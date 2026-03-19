@@ -32,5 +32,4 @@ git checkout -b "$BRANCH_NAME"
 echo "==> Running Claude Code..."
 claude \
   --allowedTools "${CLAUDE_ALLOWED_TOOLS}" \
-  --mcp-config /mcp.json \
   -p "$INSTRUCTION"
