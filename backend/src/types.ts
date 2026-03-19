@@ -11,7 +11,6 @@ export interface Agent {
   createdAt: string;
 }
 
-// Client -> Server
 export type ClientMessage =
   | { type: "create_agent"; name: string; repoUrl: string; instruction: string }
   | { type: "stop_agent"; agentId: string }
@@ -19,10 +18,10 @@ export type ClientMessage =
   | { type: "unsubscribe"; agentId: string }
   | { type: "list_agents" };
 
-// Server -> Client
 export type ServerMessage =
   | { type: "agent_created"; agent: Agent }
   | { type: "agent_output"; agentId: string; event: unknown }
   | { type: "agent_status"; agentId: string; status: AgentStatus }
   | { type: "agents_list"; agents: Agent[] }
+  | { type: "review_ready"; agentId: string; summary: string; diff: string }
   | { type: "error"; message: string };

@@ -11,27 +11,26 @@ if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -z "${CLAUDE_CODE_USE_BEDROCK:-}" ]; the
 fi
 : "${INSTRUCTION:?INSTRUCTION is required}"
 : "${AGENT_NAME:?AGENT_NAME is required}"
+: "${AGENT_ID:?AGENT_ID is required}"
 
 WORK_DIR="/workspace"
 BRANCH_NAME="agent/${AGENT_NAME}"
 
 # Inject token into the clone URL for authentication
-# Turns https://github.com/user/repo.git into https://<token>@github.com/user/repo.git
 AUTH_URL="${REPO_URL/https:\/\//https://${GITHUB_TOKEN}@}"
 
-# Clone main branch
 echo "==> Cloning $REPO_URL (main)..."
 git clone "$AUTH_URL" "$WORK_DIR"
 cd "$WORK_DIR"
 
-# Create a new branch for this agent
+# Copy CLAUDE.md into the workspace root so Claude Code picks it up
+cp /CLAUDE.md "$WORK_DIR/CLAUDE.md"
+
 echo "==> Creating branch $BRANCH_NAME..."
 git checkout -b "$BRANCH_NAME"
 
-# Run Claude Code with the instruction
-echo "==> Running Claude Code with instruction..."
-claude --output-format stream-json --allowedTools "${CLAUDE_ALLOWED_TOOLS}" -p "$INSTRUCTION"
-
-# Output the diff
-echo "==> Generating diff..."
-git diff
+echo "==> Running Claude Code..."
+claude \
+  --allowedTools "${CLAUDE_ALLOWED_TOOLS}" \
+  --mcp-config /mcp.json \
+  -p "$INSTRUCTION"
