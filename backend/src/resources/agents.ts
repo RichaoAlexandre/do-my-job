@@ -1,4 +1,4 @@
-import type { Agent, AgentStatus } from "./types.js";
+import type { Agent, AgentStatus } from "../types.js";
 
 const agents = new Map<string, Agent>();
 

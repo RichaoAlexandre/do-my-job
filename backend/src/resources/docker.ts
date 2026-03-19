@@ -1,7 +1,7 @@
 import { PassThrough } from "node:stream";
 import Dockerode from "dockerode";
 import { appendAgentLog, updateAgentStatus } from "./agents.js";
-import { broadcastToSubscribers } from "./ws-handler.js";
+import { broadcastToSubscribers } from "../connectors/ws-handler.js";
 
 const docker = new Dockerode({ socketPath: "/var/run/docker.sock" });
 

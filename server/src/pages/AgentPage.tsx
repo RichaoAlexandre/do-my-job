@@ -18,7 +18,9 @@ interface Review {
   diff: string;
 }
 
-function toolResultToString(content: string | { type: string; [key: string]: unknown }[]): string {
+function toolResultToString(
+  content: string | { type: string; [key: string]: unknown }[],
+): string {
   if (typeof content === "string") return content;
   return content
     .map((part) => ("text" in part ? String(part.text) : JSON.stringify(part)))
@@ -40,7 +42,12 @@ function renderContentBlock(block: ContentBlock, key: string) {
         />
       );
     case "tool_result":
-      return <ToolResultMessage key={key} content={toolResultToString(block.content)} />;
+      return (
+        <ToolResultMessage
+          key={key}
+          content={toolResultToString(block.content)}
+        />
+      );
   }
 }
 

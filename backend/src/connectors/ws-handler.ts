@@ -1,12 +1,15 @@
 import type { WSContext } from "hono/ws";
-import type { ClientMessage, ServerMessage } from "./types.js";
+import type { ClientMessage, ServerMessage } from "../types.js";
 import {
   addAgent,
   getAgent,
   getAllAgents,
   updateAgentStatus,
-} from "./agents.js";
-import { createAgentContainer, stopAgentContainer } from "./docker.js";
+} from "../resources/agents.js";
+import {
+  createAgentContainer,
+  stopAgentContainer,
+} from "../resources/docker.js";
 
 type WS = WSContext<WebSocket>;
 

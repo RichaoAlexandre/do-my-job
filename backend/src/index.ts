@@ -2,16 +2,19 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { createNodeWebSocket } from "@hono/node-ws";
-import { handleMessage, handleClose } from "./ws-handler.js";
+import { handleMessage, handleClose } from "./connectors/ws-handler.js";
 import {
   addAgent,
   getAgent,
   getAllAgents,
   removeAgent,
   updateAgentStatus,
-} from "./agents.js";
-import { createAgentContainer, stopAgentContainer } from "./docker.js";
-import { broadcastToSubscribers } from "./ws-handler.js";
+} from "./resources/agents.js";
+import {
+  createAgentContainer,
+  stopAgentContainer,
+} from "./resources/docker.js";
+import { broadcastToSubscribers } from "./connectors/ws-handler.js";
 
 const app = new Hono();
 app.use("*", cors());
@@ -94,8 +97,7 @@ app.delete("/agents/:id", async (c) => {
     removeAgent(agentId);
     return c.json({ ok: true });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to stop agent";
+    const message = err instanceof Error ? err.message : "Failed to stop agent";
     return c.json({ error: message }, 500);
   }
 });
