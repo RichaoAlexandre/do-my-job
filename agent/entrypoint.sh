@@ -31,5 +31,7 @@ git checkout -b "$BRANCH_NAME"
 
 echo "==> Running Claude Code..."
 claude \
+  --output-format stream-json \
+  --verbose \
   --allowedTools "${CLAUDE_ALLOWED_TOOLS}" \
   -p "$INSTRUCTION"

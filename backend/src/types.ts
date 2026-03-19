@@ -8,6 +8,7 @@ export interface Agent {
   status: AgentStatus;
   containerId: string;
   log: unknown[];
+  review: { summary: string; diff: string } | null;
   createdAt: string;
 }
 

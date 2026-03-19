@@ -20,7 +20,9 @@ export function broadcastToSubscribers(
   message: ServerMessage,
 ): void {
   const subs = subscriptions.get(agentId);
-  if (!subs) return;
+  if (!subs) {
+    return;
+  }
   const data = JSON.stringify(message);
   for (const ws of subs) {
     ws.send(data);
@@ -34,11 +36,20 @@ function subscribe(ws: WS, agentId: string): void {
   if (!clientSubs.has(ws)) clientSubs.set(ws, new Set());
   clientSubs.get(ws)!.add(agentId);
 
-  // Replay log
   const agent = getAgent(agentId);
   if (agent) {
     for (const event of agent.log) {
       ws.send(JSON.stringify({ type: "agent_output", agentId, event }));
+    }
+    if (agent.review) {
+      ws.send(
+        JSON.stringify({
+          type: "review_ready",
+          agentId,
+          summary: agent.review.summary,
+          diff: agent.review.diff,
+        }),
+      );
     }
   }
 }
@@ -93,6 +104,7 @@ export async function handleMessage(ws: WS, raw: string): Promise<void> {
         status: "solving" as const,
         containerId: "",
         log: [],
+        review: null,
         createdAt: new Date().toISOString(),
       };
 

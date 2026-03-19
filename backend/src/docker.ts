@@ -67,6 +67,7 @@ function attachToContainer(
           } catch {
             event = { type: "text", text: line };
           }
+          console.log("line is ", line);
           appendAgentLog(agentId, event);
           broadcastToSubscribers(agentId, {
             type: "agent_output",

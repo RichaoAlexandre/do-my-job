@@ -54,6 +54,7 @@ app.post("/agents", async (c) => {
     status: "solving" as const,
     containerId: "",
     log: [],
+    review: null,
     createdAt: new Date().toISOString(),
   };
 
@@ -99,7 +100,7 @@ app.delete("/agents/:id", async (c) => {
   }
 });
 
-// REST: agent submits review (called by MCP server inside container)
+// REST: agent submits review (called by submit-review.sh inside container)
 app.post("/agents/:id/review", async (c) => {
   const agentId = c.req.param("id");
   const agent = getAgent(agentId);
@@ -107,6 +108,7 @@ app.post("/agents/:id/review", async (c) => {
     return c.json({ error: "Agent not found" }, 404);
   }
   const body = await c.req.json<{ summary: string; diff: string }>();
+  agent.review = { summary: body.summary, diff: body.diff };
   broadcastToSubscribers(agentId, {
     type: "review_ready",
     agentId,

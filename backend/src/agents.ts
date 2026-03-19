@@ -16,12 +16,16 @@ export function addAgent(agent: Agent): void {
 
 export function updateAgentStatus(id: string, status: AgentStatus): void {
   const agent = agents.get(id);
-  if (agent) agent.status = status;
+  if (agent) {
+    agent.status = status;
+  }
 }
 
 export function appendAgentLog(id: string, event: unknown): void {
   const agent = agents.get(id);
-  if (agent) agent.log.push(event);
+  if (agent) {
+    agent.log.push(event);
+  }
 }
 
 export function removeAgent(id: string): void {
