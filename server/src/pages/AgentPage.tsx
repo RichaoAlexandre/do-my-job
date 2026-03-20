@@ -1,110 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { cn } from "../lib/cn";
-import AssistantMessage from "../components/AssistantMessage";
-import ThinkingMessage from "../components/ThinkingMessage";
-import ToolCallMessage from "../components/ToolCallMessage";
-import ToolResultMessage from "../components/ToolResultMessage";
-import SystemMessage from "../components/SystemMessage";
-import UserMessage from "../components/UserMessage";
-import {
-  type AgentEvent,
-  type AssistantEvent,
-  type UserEvent,
-  type ContentBlock,
-  BlockTypes,
-} from "../types/messages.types";
+import EventMessage from "../components/EventMessage";
+import ReviewCard from "../components/ReviewCard";
+import type { AgentEvent } from "../types/messages.types";
+import { deleteAgent } from "../connectors/api";
 
 type Review = {
   summary: string;
   diff: string;
 };
-
-function toolResultToString(
-  content: string | { type: string; [key: string]: unknown }[],
-): string {
-  if (typeof content === "string") return content;
-  return content
-    .map((part) => ("text" in part ? String(part.text) : JSON.stringify(part)))
-    .join("\n");
-}
-
-function renderContentBlock(block: ContentBlock, key: string) {
-  switch (block.type) {
-    case BlockTypes.text:
-      return <AssistantMessage key={key} text={block.text} />;
-    case BlockTypes.thinking:
-      return <ThinkingMessage key={key} text={block.thinking} />;
-    case BlockTypes.tool_use:
-      return (
-        <ToolCallMessage
-          key={key}
-          toolName={block.name}
-          input={JSON.stringify(block.input, null, 2)}
-        />
-      );
-    case BlockTypes.tool_result:
-      return (
-        <ToolResultMessage
-          key={key}
-          content={toolResultToString(block.content)}
-        />
-      );
-  }
-}
-
-function renderEvent(event: AgentEvent, index: number) {
-  switch (event.type) {
-    case "assistant": {
-      const evt = event as AssistantEvent;
-      return evt.message.content.map((block, j) =>
-        renderContentBlock(block, `${index}-${j}`),
-      );
-    }
-    case "user": {
-      const evt = event as UserEvent;
-      return evt.message.content.map((block, j) => {
-        if (block.type === "text") {
-          return <UserMessage key={`${index}-${j}`} text={block.text} />;
-        }
-        if (block.type === "tool_result") {
-          return (
-            <ToolResultMessage
-              key={`${index}-${j}`}
-              content={toolResultToString(block.content)}
-            />
-          );
-        }
-        return renderContentBlock(block, `${index}-${j}`);
-      });
-    }
-    case "system":
-      return (
-        <SystemMessage
-          key={index}
-          text={`Session started (${event.subtype})`}
-        />
-      );
-    case "result":
-      return (
-        <SystemMessage
-          key={index}
-          text={
-            event.is_error
-              ? `Error: ${event.result}`
-              : `Done — ${event.num_turns} turns, ${event.duration_ms}ms`
-          }
-        />
-      );
-    case "text":
-    case "stderr":
-      return event.text.trim() ? (
-        <AssistantMessage key={index} text={event.text} />
-      ) : null;
-    default:
-      return null;
-  }
-}
 
 export default function AgentPage() {
   const { id } = useParams<{ id: string }>();
@@ -150,10 +55,12 @@ export default function AgentPage() {
   }, [events]);
 
   async function handleTerminate() {
-    if (!id) return;
+    if (!id) {
+      return;
+    }
     setTerminating(true);
     try {
-      await fetch(`/api/agents/${id}`, { method: "DELETE" });
+      await deleteAgent(id);
       navigate("/");
     } catch (err) {
       console.error(err);
@@ -198,35 +105,12 @@ export default function AgentPage() {
 
       <div className="flex-1 overflow-auto">
         <div className="p-6 space-y-3 font-mono text-sm">
-          {events.map((event, i) => renderEvent(event, i))}
+          {events.map((event, i) => (
+            <EventMessage key={i} event={event} />
+          ))}
 
           {review && (
-            <div className="border border-zinc-800 rounded-lg p-6 mt-3">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-green-900 text-green-300">
-                  Review Ready
-                </span>
-              </div>
-              <p className="text-sm text-zinc-300 mb-4">{review.summary}</p>
-              <pre className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 overflow-auto text-xs leading-relaxed">
-                {review.diff.split("\n").map((line, i) => (
-                  <div
-                    key={i}
-                    className={
-                      line.startsWith("+") && !line.startsWith("+++")
-                        ? "text-green-400"
-                        : line.startsWith("-") && !line.startsWith("---")
-                          ? "text-red-400"
-                          : line.startsWith("@@")
-                            ? "text-blue-400"
-                            : "text-zinc-500"
-                    }
-                  >
-                    {line}
-                  </div>
-                ))}
-              </pre>
-            </div>
+            <ReviewCard summary={review.summary} diff={review.diff} />
           )}
 
           <div ref={bottomRef} />
