@@ -5,6 +5,14 @@ export async function getAgents(): Promise<Agent[]> {
   return res.json();
 }
 
+export async function getAgent(id: string): Promise<Agent> {
+  const res = await fetch(`/api/agents/${id}`);
+  if (!res.ok) {
+    throw new Error("Agent not found");
+  }
+  return res.json();
+}
+
 export async function createAgent(
   task: string,
   repoUrl: string,

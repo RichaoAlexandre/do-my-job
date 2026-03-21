@@ -5,7 +5,7 @@ SUMMARY="${1:?Usage: submit-review.sh <summary>}"
 
 cd /workspace
 git add -A
-DIFF=$(git diff --cached)
+DIFF=$(git diff --cached -U9999)
 
 curl -s -X POST "${BACKEND_URL}/agents/${AGENT_ID}/review" \
   -H "Content-Type: application/json" \

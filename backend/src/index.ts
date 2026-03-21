@@ -22,12 +22,18 @@ const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// REST: list agents
 app.get("/agents", (c) => {
   return c.json(getAllAgents());
 });
 
-// REST: create agent
+app.get("/agents/:id", (c) => {
+  const agent = getAgent(c.req.param("id"));
+  if (!agent) {
+    return c.json({ error: "Agent not found" }, 404);
+  }
+  return c.json(agent);
+});
+
 app.post("/agents", async (c) => {
   const raw = await c.req.json<{ task: string; repoUrl: string }>();
   const body = {
@@ -116,6 +122,12 @@ app.post("/agents/:id/review", async (c) => {
     agentId,
     summary: body.summary,
     diff: body.diff,
+  });
+  updateAgentStatus(agentId, "finished");
+  broadcastToSubscribers(agentId, {
+    type: "agent_status",
+    agentId,
+    status: "finished",
   });
   return c.json({ ok: true });
 });

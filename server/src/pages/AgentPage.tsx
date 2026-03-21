@@ -3,8 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { cn } from "../lib/cn";
 import EventMessage from "../components/EventMessage";
 import ReviewCard from "../components/ReviewCard";
+import FloatingInput from "../components/FloatingInput";
 import type { AgentEvent } from "../types/messages.types";
-import { deleteAgent } from "../connectors/api";
+import { getAgent, deleteAgent } from "../connectors/api";
 
 type Review = {
   summary: string;
@@ -20,6 +21,20 @@ export default function AgentPage() {
   const [terminating, setTerminating] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+    try {
+      void (async () => {
+        const agent = await getAgent(id);
+        setStatus(agent.status);
+      })();
+    } catch (e) {
+      console.error(`an error happened while fetching the agent : ${e}`);
+    }
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -38,6 +53,7 @@ export default function AgentPage() {
         setEvents((prev) => [...prev, msg.event as AgentEvent]);
       }
       if (msg.type === "agent_status" && msg.agentId === id) {
+        console.log("updating status to ", msg.status);
         setStatus(msg.status);
       }
       if (msg.type === "review_ready" && msg.agentId === id) {
@@ -109,12 +125,11 @@ export default function AgentPage() {
             <EventMessage key={i} event={event} />
           ))}
 
-          {review && (
-            <ReviewCard summary={review.summary} diff={review.diff} />
-          )}
+          {status === "finished" && review && <ReviewCard summary={review.summary} diff={review.diff} />}
 
           <div ref={bottomRef} />
         </div>
+        <FloatingInput onSubmit={(msg) => console.log(msg)} />
       </div>
     </div>
   );
