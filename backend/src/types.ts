@@ -17,6 +17,9 @@ export type ClientMessage =
   | { type: "stop_agent"; agentId: string }
   | { type: "subscribe"; agentId: string }
   | { type: "unsubscribe"; agentId: string }
+  | { type: "send_message"; agentId: string; content: string }
+  | { type: "register_agent"; agentId: string }
+  | { type: "agent_ready"; agentId: string }
   | { type: "list_agents" };
 
 export type ServerMessage =

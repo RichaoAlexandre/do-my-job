@@ -4,11 +4,13 @@ import { Send01 } from "@untitled-ui/icons-react";
 type FloatingInputProps = {
   onSubmit: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export default function FloatingInput({
   onSubmit,
   placeholder = "Send a message...",
+  disabled = false,
 }: FloatingInputProps) {
   const [value, setValue] = useState("");
 
@@ -32,7 +34,8 @@ export default function FloatingInput({
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer"
+          disabled={disabled}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Send01 className="w-4 h-4" />
         </button>

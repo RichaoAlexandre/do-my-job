@@ -129,7 +129,15 @@ export default function AgentPage() {
 
           <div ref={bottomRef} />
         </div>
-        <FloatingInput onSubmit={(msg) => console.log(msg)} />
+        <FloatingInput
+          onSubmit={(msg) => {
+            wsRef.current?.send(
+              JSON.stringify({ type: "send_message", agentId: id, content: msg }),
+            );
+            setStatus("solving");
+          }}
+          disabled={status !== "finished"}
+        />
       </div>
     </div>
   );

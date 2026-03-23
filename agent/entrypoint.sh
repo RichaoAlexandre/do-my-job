@@ -23,6 +23,10 @@ echo "==> Cloning $REPO_URL (main)..."
 git clone "$AUTH_URL" "$WORK_DIR"
 cd "$WORK_DIR"
 
+# Configure git identity
+git config user.email "${GIT_USER_EMAIL:-agent@do-my-job.local}"
+git config user.name "${GIT_USER_NAME:-Do My Job Agent}"
+
 # Copy CLAUDE.md into the workspace root so Claude Code picks it up
 cp /CLAUDE.md "$WORK_DIR/CLAUDE.md"
 
@@ -35,3 +39,6 @@ claude \
   --verbose \
   --allowedTools "${CLAUDE_ALLOWED_TOOLS}" \
   -p "$INSTRUCTION"
+
+echo "==> Starting follow-up listener..."
+node /follow-up.js

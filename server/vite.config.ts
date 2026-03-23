@@ -9,11 +9,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://backend:3001',
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/ws': {
-        target: 'ws://localhost:3001',
+        target: 'ws://backend:3001',
         ws: true,
       },
     },

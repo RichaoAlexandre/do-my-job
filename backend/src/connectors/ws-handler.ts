@@ -17,6 +17,8 @@ type WS = WSContext<WebSocket>;
 const subscriptions = new Map<string, Set<WS>>();
 // ws -> Set of agentIds it's subscribed to
 const clientSubs = new Map<WS, Set<string>>();
+// agentId -> agent container WebSocket
+const agentConnections = new Map<string, WS>();
 
 export function broadcastToSubscribers(
   agentId: string,
@@ -70,6 +72,13 @@ export function handleClose(ws: WS): void {
     }
   }
   clientSubs.delete(ws);
+  // Clean up if this was an agent container connection
+  for (const [agentId, agentWs] of agentConnections) {
+    if (agentWs === ws) {
+      agentConnections.delete(agentId);
+      break;
+    }
+  }
 }
 
 export async function handleMessage(ws: WS, raw: string): Promise<void> {
@@ -95,6 +104,8 @@ export async function handleMessage(ws: WS, raw: string): Promise<void> {
         "ANTHROPIC_MODEL",
         "ANTHROPIC_SMALL_FAST_MODEL",
         "CLAUDE_ALLOWED_TOOLS",
+        "GIT_USER_EMAIL",
+        "GIT_USER_NAME",
       ]) {
         if (process.env[key]) env[key] = process.env[key]!;
       }
@@ -164,6 +175,52 @@ export async function handleMessage(ws: WS, raw: string): Promise<void> {
     case "unsubscribe":
       unsubscribe(ws, msg.agentId);
       break;
+
+    case "send_message": {
+      const agent = getAgent(msg.agentId);
+      if (!agent) {
+        ws.send(JSON.stringify({ type: "error", message: "Agent not found" }));
+        return;
+      }
+      if (agent.status !== "finished") {
+        ws.send(
+          JSON.stringify({ type: "error", message: "Agent is not ready for messages" }),
+        );
+        return;
+      }
+      const agentWs = agentConnections.get(msg.agentId);
+      if (!agentWs) {
+        ws.send(
+          JSON.stringify({ type: "error", message: "Agent container not connected" }),
+        );
+        return;
+      }
+      agentWs.send(JSON.stringify({ type: "user_message", content: msg.content }));
+      updateAgentStatus(msg.agentId, "solving");
+      broadcastToSubscribers(msg.agentId, {
+        type: "agent_status",
+        agentId: msg.agentId,
+        status: "solving",
+      });
+      break;
+    }
+
+    case "register_agent": {
+      console.log(`[ws] agent container registered: ${msg.agentId}`);
+      agentConnections.set(msg.agentId, ws);
+      break;
+    }
+
+    case "agent_ready": {
+      console.log(`[ws] agent ready: ${msg.agentId}`);
+      updateAgentStatus(msg.agentId, "finished");
+      broadcastToSubscribers(msg.agentId, {
+        type: "agent_status",
+        agentId: msg.agentId,
+        status: "finished",
+      });
+      break;
+    }
 
     case "list_agents": {
       const agents = getAllAgents();
